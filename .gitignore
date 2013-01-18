@@ -33,3 +33,6 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+#tmp python soure code
+test/pycode/
