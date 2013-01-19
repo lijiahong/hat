@@ -14,13 +14,15 @@ Installation
 ------------
 ``python setup.py install``
 
+To run on Hadoop cluster, make sure ``$HADOOP_HOME`` is set or just put Hadoop into your home directory.
+
 Example
 -------
-First, initialize the input data:
+First, initialize input data:
 
 ``$ bin/hadoop fs -put ./test/little_prince_ch1.txt input``
 
-Second, write MapReduce job
+Second, write a MapReduce job:
 
     from hat.job import Hat
 
@@ -37,11 +39,11 @@ Second, write MapReduce job
             yield (key, sum(map(int, values)))
 
     def main():
-        word_count_hat = WordCountHat(input_path='input')
+        word_count_hat = WordCountHat(input_path='input', output_path='outout')
         word_count_hat.run()
 
     if __name__ == '__main__': main()
 
-Third, check output:
+Third, checkout output:
 
 ``$ bin/hadoop fs -cat /output/*``
