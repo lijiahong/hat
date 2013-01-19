@@ -9,7 +9,8 @@ import select
 import subprocess
 import time
 
-HADOOP_HOME = '~/hadoop/'
+hadoop_home_env = os.environ.get('HADOOP_HOME')
+HADOOP_HOME = hadoop_home_env if hadoop_home_env else '~/hadoop/'
 
 HADOOP = 'bin/hadoop'
 
@@ -76,21 +77,16 @@ class Hat(object):
         stdout_fd = process.stdout.fileno()
         stderr_fd = process.stderr.fileno()
         read_fds = [stdout_fd, stderr_fd]
-        encouter_error = False
         while True:
             ret = select.select(read_fds, [], [])
             for fd in ret[0]:
                 if fd == stdout_fd:
                     sys.stdout.write(process.stdout.readline())
                 elif fd == stderr_fd:
-                    encouter_error = True
                     sys.stdout.write(process.stderr.readline())
             if process.poll() != None:
                 break
-        if not encouter_error:
-            print 'Job <%s>: DONE' % self.task_name
-        else:
-            print 'Job <%s>: ERROR' % self.task_name
+        print 'Job <%s>: DONE' % self.task_name
 
     def _make_mapper_file(self):
         mapper_path = '%s/mapper.py' % CODE_DIR
