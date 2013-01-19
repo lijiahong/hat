@@ -44,7 +44,7 @@ class Hat(object):
         else:
             raise InputPathError('Input path is not specified.')
         if kargs.has_key('output_path'):
-            self.output = kargs['output']
+            self.output = kargs['output_path']
         else:
             self.output = DEFAULT_OUTPUT_PATH
         #mapper and recuder executable code base dir
