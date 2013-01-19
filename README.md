@@ -46,4 +46,6 @@ Second, write a MapReduce job:
 
 Third, checkout output:
 
-``$ bin/hadoop fs -cat /output/*``
+``$ bin/hadoop fs -cat output/*``
+
+See more examples on ``hat/examples``.
