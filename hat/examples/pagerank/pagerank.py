@@ -21,6 +21,7 @@ class PageRankIter(Hat):
                     #make sure outlink is not empty
                     if outlink.strip():
                         yield (outlink, '%s,%s,%s,%s' % ('pr', key, current_pr / L, total_nodes))
+                #prepare for next iter
                 yield (key, '%s,%s,%s' % ('outlinks', total_nodes, ','.join(outlinks)))
         except IndexError:
             #do not have outlinks
@@ -29,7 +30,7 @@ class PageRankIter(Hat):
 
     def reducer(self, key, values):
         alpha = 0.85
-        rank = 0.0
+        pr_sum = 0.0
         outlinks = None
         total_nodes = None
         for value in values:
@@ -38,14 +39,14 @@ class PageRankIter(Hat):
             if symbol == 'pr':
                 pr_i = tokens[2]
                 total_nodes = int(tokens[3])
-                rank += float(pr_i)
+                pr_sum += float(pr_i)
             if symbol == 'outlinks':
                 total_nodes = int(tokens[1])
                 try:
                     outlinks = tokens[2:]
                 except IndexError:
                     outlinks = None
-        rank = (1 - alpha) / total_nodes + alpha * rank
+        rank = (1 - alpha) / total_nodes + alpha * pr_sum
         if outlinks:
             yield (key, '%s,%s,%s,%s' % ('pr_results', rank, total_nodes, ','.join(outlinks)))
         else:
