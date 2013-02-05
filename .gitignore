@@ -35,4 +35,4 @@ nosetests.xml
 .pydevproject
 
 #tmp python soure code
-test/pycode/
+pycode/
