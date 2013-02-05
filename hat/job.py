@@ -9,12 +9,7 @@ import select
 import subprocess
 import time
 
-hadoop_home_env = os.environ.get('HADOOP_HOME')
-HADOOP_HOME = hadoop_home_env if hadoop_home_env else '~/hadoop/'
-
-HADOOP = 'bin/hadoop'
-
-HADOOP_STREAMING_JAR = '%scontrib/streaming/hadoop-*streaming*.jar' % HADOOP_HOME
+from config import HADOOP_HOME, HADOOP_BIN, HADOOP_STREAMING_JAR
 
 CODE_DIR = 'pycode'
 
@@ -66,7 +61,7 @@ class Hat(object):
                                     reducer_path, reducer_path))
 
     def hadoop_stream_command(self, cmd_args):
-        hadoop_cmd = '%s%s jar %s %s' % (HADOOP_HOME, HADOOP, HADOOP_STREAMING_JAR, cmd_args)
+        hadoop_cmd = '%s jar %s %s' % (HADOOP_BIN, HADOOP_STREAMING_JAR, cmd_args)
         print 'Execute: %s' % hadoop_cmd
         process = subprocess.Popen(hadoop_cmd, 
                                    stdin=subprocess.PIPE, 
