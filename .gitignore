@@ -36,3 +36,6 @@ nosetests.xml
 
 #tmp python soure code
 pycode/
+
+#tmp backup
+*.*~
