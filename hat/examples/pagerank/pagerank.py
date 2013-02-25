@@ -13,18 +13,18 @@ class PageRankIter(Hat):
             return
         current_pr = float(tokens[1])
         total_nodes = int(tokens[2])
-        try:
+        if len(tokens) > 3:
             outlinks = tokens[3:]
             L = len(outlinks)
-            if L > 0:
-                for outlink in outlinks:
-                    #make sure outlink is not empty
-                    if outlink.strip():
-                        yield (outlink, '%s,%s,%s,%s' % ('pr', key, current_pr / L, total_nodes))
-                #prepare for next iter
-                yield (key, '%s,%s,%s' % ('outlinks', total_nodes, ','.join(outlinks)))
-        except IndexError:
+            for outlink in outlinks:
+                #make sure outlink is not empty
+                if outlink.strip():
+                    yield (outlink, '%s,%s,%s,%s' % ('pr', key, current_pr / L, total_nodes))
+            #prepare for next iter
+            yield (key, '%s,%s,%s' % ('outlinks', total_nodes, ','.join(outlinks)))
+        else:
             #do not have outlinks
+            yield (key, '%s,%s,%s,%s' % ('pr', key, current_pr, total_nodes))
             yield (key, '%s,%s' % ('outlinks', total_nodes))
         
 
