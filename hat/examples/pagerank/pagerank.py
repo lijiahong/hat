@@ -1,6 +1,9 @@
 #-*- coding: utf-8 -*-
 
+import sys
+
 from hat.job import Hat
+from hat.fs import HadoopFS
 
 class PageRankIter(Hat):
     def mapper(self, key, value):
@@ -26,7 +29,6 @@ class PageRankIter(Hat):
             #do not have outlinks
             yield (key, '%s,%s,%s,%s' % ('pr', key, current_pr, total_nodes))
             yield (key, '%s,%s' % ('outlinks', total_nodes))
-        
 
     def reducer(self, key, values):
         alpha = 0.85
@@ -61,26 +63,49 @@ class PageRankSorter(Hat):
             return
         current_pr = '%.8f' % float(tokens[1])
         yield (current_pr, key)
-        
 
     def reducer(self, key, values):
         for value in values:
             yield (value, key)
         
 def main():
-    iter_count = 2
+    job_id = 'hat_1'
+
+    if (len(sys.argv) < 3):
+        print 'Usage: python pagerank.py input_file iter_count'
+        sys.exit()
+    else:
+        iter_count = int(sys.argv[2])
+        input_file_name = sys.argv[1]
+
+    fs = HadoopFS()
+    #set work dir and put input file into file system
+    fs.mkdir('%s' % job_id)
+    fs.put(input_file_name, '%s/hat_init' % job_id)
 
     #init
-    pr_iter = PageRankIter(input_path='pr_init', output_path='pr_tmp1')
+    pr_iter = PageRankIter(input_path='%s/hat_init' % job_id, output_path='%s/hat_tmp1' % job_id)
     pr_iter.run()
 
     #iter
     for i in range(iter_count-1):
-        pr_iter = PageRankIter(input_path='pr_tmp%s' % (i+1), output_path='pr_tmp%s' % (i+2))
+        pr_iter = PageRankIter(input_path='%s/hat_tmp%s' % (job_id, (i+1)), output_path='%s/hat_tmp%s' % (job_id, (i+2)))
         pr_iter.run()
 
     #sort
-    pr_sorter = PageRankSorter(input_path='pr_tmp%s' % iter_count, output_path='pr_results')
+    pr_sorter = PageRankSorter(input_path='%s/hat_tmp%s' % (job_id, iter_count), output_path='%s/hat_results' % job_id)
     pr_sorter.run()
+
+    #output and clean work dir
+    try:
+        outputs = fs.cat('%s/hat_results/*' % job_id)
+        if len(outputs) > 100:
+            outputs = outputs[-100:]
+        for line in outputs:
+            print line
+    except Exception:
+        raise
+    finally:
+        fs.rmr('%s' % job_id)
 
 if __name__ == '__main__': main()
