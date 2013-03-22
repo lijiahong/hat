@@ -4,12 +4,14 @@ from hat.fs import HadoopFS
 
 fs = HadoopFS(debug=True)
 
-fs.put('test.txt', 'test_for_fs')
+print fs.mkdir('test')
 
-for line in fs.cat('test_for_fs/*'):
+print fs.put('test.txt', 'test/test_for_fs')
+
+for line in fs.cat('test/test_for_fs/*'):
     print line
 
-fs.rmr('test_for_fs')
+print fs.rmr('test')
 
 for line in fs.ls():
     print line

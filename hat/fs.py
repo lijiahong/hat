@@ -50,6 +50,13 @@ class HadoopFS(object):
             for line in output_lines:
                 lines.append(line.strip())
             return lines
+        elif command in self.commands:
+            if error_lines:
+                return -1
+            else:
+                return 1
+        else:
+            pass
 
     def __getattr__(self, attr, *args):
         if attr in self.commands:
