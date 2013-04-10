@@ -8,10 +8,9 @@ import inspect
 import select
 import subprocess
 import time
+import tempfile
 
 from config import HADOOP_HOME, HADOOP_BIN, HADOOP_STREAMING_JAR
-
-CODE_DIR = 'pycode'
 
 DEFAULT_OUTPUT_PATH = 'output'
 
@@ -42,9 +41,6 @@ class Hat(object):
             self.output = kargs['output_path']
         else:
             self.output = DEFAULT_OUTPUT_PATH
-        #mapper and recuder executable code base dir
-        if not os.path.exists(CODE_DIR):
-            os.mkdir(CODE_DIR)
 
     def mapper(self, key, value):
         raise NotImplementedError
@@ -53,12 +49,16 @@ class Hat(object):
         raise NotImplementedError
 
     def run(self):
-        mapper_path = self._make_mapper_file()
-        reducer_path = self._make_reducer_file()
+        mapper_tmp_file = self._make_mapper_file()
+        reducer_tmp_file = self._make_reducer_file()
+        mapper_path = mapper_tmp_file.name
+        reducer_path = reducer_tmp_file.name
         self.hadoop_stream_command('-input %s -output %s -mapper %s -file %s -reducer %s -file %s' % 
                                    (self.input, self.output, 
                                     mapper_path, mapper_path,
                                     reducer_path, reducer_path))
+        mapper_tmp_file.close()
+        reducer_tmp_file.close()
 
     def hadoop_stream_command(self, cmd_args):
         hadoop_cmd = '%s jar %s %s' % (HADOOP_BIN, HADOOP_STREAMING_JAR, cmd_args)
@@ -84,8 +84,7 @@ class Hat(object):
         print 'Job <%s>: DONE' % self.task_name
 
     def _make_mapper_file(self):
-        mapper_path = '%s/mapper.py' % CODE_DIR
-        mapper_file = codecs.open(mapper_path, 'w', encoding='utf-8')
+        mapper_tmp_file = tempfile.NamedTemporaryFile()
         mapper_str = "#!/usr/bin/env python\n"
         mapper_str += "#-*- coding: utf-8 -*-\n"
         mapper_str += "import sys\n"
@@ -108,13 +107,12 @@ class Hat(object):
             #remove a indent 
             mapper_str += line[4:]
         mapper_str += "if __name__ == '__main__': main()\n"
-        mapper_file.write(mapper_str)
-        mapper_file.close()
-        return mapper_path
+        mapper_tmp_file.write(mapper_str)
+        mapper_tmp_file.flush()
+        return mapper_tmp_file
 
     def _make_reducer_file(self):
-        reducer_path = '%s/reducer.py' % CODE_DIR
-        reducer_file = codecs.open(reducer_path, 'w', encoding='utf-8')
+        reducer_tmp_file = tempfile.NamedTemporaryFile()
         reducer_str = "#!/usr/bin/env python\n"
         reducer_str += "#-*- coding: utf-8 -*-\n"
         reducer_str += "import sys\n"
@@ -135,9 +133,9 @@ class Hat(object):
             #remove a indent 
             reducer_str += line[4:]
         reducer_str += "if __name__ == '__main__': main()\n"
-        reducer_file.write(reducer_str)
-        reducer_file.close()
-        return reducer_path
+        reducer_tmp_file.write(reducer_str)
+        reducer_tmp_file.flush()
+        return reducer_tmp_file
 
     def _generate_code(self, py_object):
         #using inspect to obtain function source code on th fly
