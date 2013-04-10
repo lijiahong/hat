@@ -34,8 +34,5 @@ nosetests.xml
 .project
 .pydevproject
 
-#tmp python soure code
-pycode/
-
 #tmp backup
 *.*~
